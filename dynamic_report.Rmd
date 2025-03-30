@@ -5,23 +5,176 @@ output: html_fragment
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, error=FALSE)
+library(tidyverse)
 
+logged_data <- read.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vR0H36Awpwa7eMibtJC_qZajmKd1jyaNLO8y9TEVAMqP3YH4DGyOzGNlz5ujH7pDi7y2WjoUFaUqRD0/pub?output=csv")
+
+latest_data <- rename(logged_data,
+                      post_subject = 2,
+                      post_tone = 3,
+                      post_format = 4,
+                      post_subreddit = 5,
+                      positive_posts = 6,
+                      negative_posts = 7)
 ```
 
 ```{css}
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap');
+
+h2 {
+  font-family: 'Oswald';
+  font-size: 32px
+}
+
+h3 {
+  font-family: 'Oswald';
+  background-image: linear-gradient(to right, #d9d9d9, #FFFFFF);
+  font-size: 24px
+}
 
 ```
 
-## What's going on with this data?
+## An Exploration of content, tone and format of popular Reddit posts.
 
-You need to change the contents of this Rmd! Replace the R code and markdown give below in this template document.
+This project aims to analyse popular posts on [Reddit.com]("https://www.reddit.com/r/all/hot/"), and explore associations between characteristics of those posts. The characteristics in question are:
+
+ * Post Subject
+ * Post Tone
+ * Post Format
+ * Post Subreddit
+ 
+Additionally, data was collected on the count of positive and negative posts that occupied the top 10 popular posts at the time of submission, to analyse if one is more common then the other.
+
+### Subreddit Source
+
+```{r fig.width = 10, fig.height = 5}
+latest_data %>%
+  ggplot() +
+    geom_bar(aes(x = post_subreddit), fill = "#99bbff") +
+    labs(title = "Do certain Subreddits produce the most popular post more often?",
+         subtitle = "Visualising origins of Popular Posts",
+         caption = "Source: Survey Data",
+         x = "Post Count",
+         y = "Origin Subreddit")
+
+subreddit_freq_table <- table(latest_data$post_subreddit)
+subreddit_max_count <- max(subreddit_freq_table)
+subreddit_most_freq <- names(subreddit_freq_table[subreddit_freq_table == subreddit_max_count])
+
+subreddit_text <- if (length(subreddit_most_freq) == 1) {
+  paste0("the subreddit that most frequently had the most popular post was ",
+         subreddit_most_freq,
+         ", and it was the source ",
+         round((subreddit_max_count / length(latest_data$post_subreddit)) * 100, digits = 1),
+         "% of the time.")
+} else {
+  paste0("multiple subreddits were most often the source of the most popular post. They were ",
+         paste0(subreddit_most_freq[-length(subreddit_most_freq)], collapse = ", "),
+         ", and ",
+         paste0(subreddit_most_freq[length(subreddit_most_freq)]),
+         ". They were each the source ",
+         round((subreddit_max_count / length(latest_data$post_subreddit)) * 100, digits = 1),
+         "% of the time.")
+}
+```
+
+The data shows that `r subreddit_text`
+
+
+
+### Post Format and Subject by Tone
+
+We can also explore which tones are used more often with both post subject and format. First, we'll look at post subjects by tone.
+
+```{r fig.width = 10, fig.height = 5}
+latest_data %>%
+  ggplot() +
+  geom_bar(aes(x = post_subject, fill = post_tone)) +
+  labs(title = "Do certain topics have a tonal bias?",
+       subtitle = "Comparing subjects and tones for popular posts",
+       fill = "Post Tone",
+       caption = "Source: Survey Data",
+       x = "Post Subject",
+       y = "Post Count")
+
+subject_freq_table <- table(latest_data$post_subject)
+subject_max_count <- max(subject_freq_table)
+subject_most_freq <- names(subject_freq_table[subject_freq_table == subject_max_count])
+
+subject_text <- if (length(subject_most_freq) == 1) {
+  paste0("the most frequent subject was ",
+         subject_most_freq,
+         ", and it was the subject of the most popular post ",
+         round((subject_max_count / length(latest_data$post_subject)) * 100, digits = 1),
+         "% of the time.")
+} else {
+  paste0("multiple subjects were used as often in the most popular post. They were ",
+         paste0(subject_most_freq[-length(subject_most_freq)], collapse = ", "),
+         ", and ",
+         paste0(subject_most_freq[length(subject_most_freq)]),
+         ". They were each used ",
+         round((subject_max_count / length(latest_data$post_subject)) * 100, digits = 1),
+         "% of the time.")
+}
+```
+
+We see that `r subject_text` Additionally, we can look at the findings for post formats by tone.
+
+
+```{r fig.width = 10, fig.height = 5}
+latest_data %>%
+  ggplot() +
+  geom_bar(aes(x = post_format, fill = post_tone)) +
+  labs(title = "Do certain post formats have a tonal bias?",
+       subtitle = "Comparing the tones of specific post formats",
+       fill = "Post Tone",
+       caption = "Source: Survey Data",
+       x = "Post Format",
+       y = "Post Count")
+
+format_freq_table <- table(latest_data$post_format)
+format_max_count <- max(format_freq_table)
+format_most_freq <- names(format_freq_table[format_freq_table == format_max_count])
+
+format_text <- if (length(format_most_freq) == 1) {
+  paste0("the most frequent format of the most popular post was ",
+         format_most_freq,
+         ", and it was used ",
+         round((format_max_count / length(latest_data$post_format)) * 100, digits = 1),
+         "% of the time.")
+} else {
+  paste0("multiple formats were used most frequentally in the most popular post. They were ",
+         paste0(format_most_freq[-length(format_most_freq)], collapse = ", "),
+         ", and ",
+         paste0(format_most_freq[length(format_most_freq)]),
+         ". They were each the used format ",
+         round((format_max_count / length(latest_data$post_format)) * 100, digits = 1),
+         "% of the time.")
+}
+```
+
+Our findings show that `r format_text`
+
+
+
+### Tonal readings for top 10 posts
 
 ```{r}
-pets <- c("cat", "dog", "turtle", "rabbit")
-best_pet <- pets[1]
+positive_higher <- 0
+negative_higher <- 0
 
+for (i in 1:length(latest_data$positive_posts)) {
+  if (latest_data$positive_posts[i] > latest_data$negative_posts[i]) {
+    positive_higher <- positive_higher + 1
+  } else {
+    negative_higher <- negative_higher + 1
+  } 
+}
 ```
 
-The best pet to have is a `r best_pet` of course!
+Our survey found that there were a total of `r sum(latest_data$positive_posts)` positive posts counted in the top 10, compared with `r sum(latest_data$negative_posts)` negative posts. Positive posts appeared more frequently in the top 10 `r positive_higher` times, while negative posts were more frequent `r negative_higher` times.
 
-![](https://c.tenor.com/-qBsG1HwR4oAAAAC/tenor.gif)
+Additionally, for posts in the top 10 most popular, we found that:
+
+  * The highest count of positive posts was `r max(latest_data$positive_posts)`, the minimum was `r min(latest_data$positive_posts)`, and the average was `r round(mean(latest_data$positive_posts), digits = 1)`.
+  * The highest count of negative posts was `r max(latest_data$negative_posts)`, the minimum was `r min(latest_data$negative_posts)`, and the average was `r round(mean(latest_data$negative_posts), digits = 1)`.
