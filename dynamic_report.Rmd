@@ -36,7 +36,7 @@ h3 {
 
 ## An Exploration of content, tone and format of popular Reddit posts.
 
-This project aims to analyse popular posts on [Reddit.com]("https://www.reddit.com/r/all/hot/"), and explore associations between characteristics of those posts. The characteristics in question are:
+This project aims to analyse popular posts on [Reddit.com](https://www.reddit.com/r/all/hot/), and explore associations between characteristics of those posts. The characteristics in question are:
 
  * Post Subject
  * Post Tone
@@ -50,12 +50,12 @@ Additionally, data was collected on the count of positive and negative posts tha
 ```{r fig.width = 10, fig.height = 5}
 latest_data %>%
   ggplot() +
-    geom_bar(aes(x = post_subreddit), fill = "#99bbff") +
+    geom_bar(aes(y = post_subreddit), fill = "#99bbff") +
     labs(title = "Do certain Subreddits produce the most popular post more often?",
          subtitle = "Visualising origins of Popular Posts",
          caption = "Source: Survey Data",
-         x = "Post Count",
-         y = "Origin Subreddit")
+         x = "Origin Subreddit",
+         y = "Post Count")
 
 subreddit_freq_table <- table(latest_data$post_subreddit)
 subreddit_max_count <- max(subreddit_freq_table)
